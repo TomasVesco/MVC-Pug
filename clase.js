@@ -8,16 +8,20 @@ class Contenedor {
 
     async save( fileToAdd ) { 
         try {
+            const newFile = await this.getAll();
 
-            this.getAll()
-            .then( newFile => {
-                fileToAdd.id = newFile[newFile.length - 1].id + 1;       
-                newFile.push( fileToAdd ); 
-                fs.writeFileSync( this.route, JSON.stringify( newFile, null, 4 ));
-                return newFile[newFile.length - 1].id;
-            });
+            fileToAdd.id = newFile[newFile.length - 1].id + 1;       
+            newFile.push( fileToAdd ); 
 
-        } catch(error) {
+            if(newFile[0].id == '0'){
+                newFile.shift();
+            }
+            
+            fs.writeFileSync( this.route, JSON.stringify( newFile, null, 4 ));
+            return newFile[newFile.length - 1].id;
+        }
+
+        catch(error) {
             console.log(error);
         }
     }
@@ -41,13 +45,17 @@ class Contenedor {
 
     async getAll() {
         try {
-
-            const readFile = await fs.promises.readFile( this.route, 'utf-8' ); 
+            let readFile = await fs.promises.readFile( this.route, 'utf-8' ); 
+            if(readFile == ''){
+                const obj = [
+                    {id: 0}
+                ];
+                fs.promises.writeFile( this.route, JSON.stringify(obj));
+            }
+            readFile = await fs.promises.readFile( this.route, 'utf-8' ); 
             return JSON.parse( readFile );         
         } catch(error) {
-
-            fs.writeFileSync( this.route, '1');
-            return JSON.parse( '1' );
+            console.log(error);
         }
     }
 

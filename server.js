@@ -10,19 +10,15 @@ app.use(express.urlencoded({ extended: true }));
 app.set('views', './views');
 app.set('view engine', 'pug');
 
-app.get('/productos', (req, res) => {
-    p.getAll()
-    .then ( products => {
-        if(products == 1){
-            res.render('main', { products, NoHayProductos: true });
-        } else {
-            res.render('main', { products, NoHayProductos: false });
-        }
-    });
+app.get('/productos', async (req, res) => {
+    const products = await p.getAll();
+    res.render('main', { products } );
 });
 
-app.post('/productos', (req, res) => {
-    const {title, price, image} = req.body;
+app.post('/productos', async (req, res) => {
+    let products = await p.getAll();
+
+    const { title, price, image } = req.body;
 
     const newProduct = {
         title: title,
@@ -30,11 +26,10 @@ app.post('/productos', (req, res) => {
         image: image
     }
 
-    p.save(newProduct);
-    p.getAll()
-    .then(products => {
-        res.render('main.pug', { products });
-    });
+    await p.save(newProduct);
+
+    products = await p.getAll();
+    res.render('main', { products });  
 });
 
 app.listen(8080);
